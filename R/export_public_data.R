@@ -161,7 +161,8 @@ build_bundle <- function(type, year, issue, title, pdf, exhibits,
       files[[length(files) + 1]] <- list(name = ds$csv, kind = "figure-data",
         exhibit = sprintf("Figure %d", fig_n), rows = ds$rows, cols = ds$cols,
         dictionary = ds$dict, image = img, sha256 = .sha256(file.path(out, ds$csv)))
-      exmap[[length(exmap) + 1]] <- c(sprintf("Figure %d", fig_n), ds$csv, img %||% "-", ex$description)
+      exmap[[length(exmap) + 1]] <- c(sprintf("Figure %d", fig_n), ds$csv,
+                                       if (is.na(img)) "-" else img, ex$description)
     } else {
       tab_n <- tab_n + 1L
       base  <- sprintf("%s-table%03d", stem, tab_n)
@@ -200,12 +201,17 @@ build_bundle <- function(type, year, issue, title, pdf, exhibits,
     "| Exhibit | Data file | Image | What it shows |",
     "|---------|-----------|-------|----------------|")
   rows <- vapply(exmap, function(r) sprintf("| %s | `%s` | %s | %s |",
-                 r[1], r[2], if (r[3] == "-") "-" else paste0("`", r[3], "`"), r[4]), character(1))
+                 r[1], r[2], if (is.na(r[3]) || r[3] == "-") "-" else paste0("`", r[3], "`"), r[4]), character(1))
+  yr <- substr(meta$publication_date %||% "", 1, 4)
   ftr <- c("", "## Verify", "",
     "Each file's sha256 checksum is in `_manifest.json`; recompute and compare to confirm",
     "your download is intact.", "",
     "## License & citation", "",
-    "Data and figures are released under **CC BY 4.0**.")
+    "Data and figures are released under **CC BY 4.0**. Please cite **both** the",
+    "underlying publication and this data bundle:", "",
+    sprintf("> **Publication:** ARPC (%s). *%s.* %s.", yr, title, meta$type %||% "ARPC publication"),
+    ">",
+    sprintf("> **Data:** ARPC (%s). *Data for %s* [data set]. Bundle `%s`.", yr, title, id))
   writeLines(c(hdr, rows, ftr), file.path(out, "README.md"))
 }
 
@@ -215,28 +221,42 @@ build_bundle <- function(type, year, issue, title, pdf, exhibits,
 #   release "report"  ->  data-arpc-report-202601.zip, data-arpc-report-202602.zip, ...
 #' Zip a built bundle and (optionally) upload it to its publication-type Release.
 #'
+#' The ZIP is built in `tempdir()` (not next to the bundle) so it never collides
+#' with a cloud-synced/locked file and is never committed. Upload targets the
+#' release tagged with the publication TYPE; the asset is overwritten if it
+#' already exists.
+#'
 #' @param bundle_dir Path to a built bundle folder (named data-arpc-<type>-<YYYY><##>).
 #' @param repo       "owner/name" on GitHub. Requires `piggyback` + a token.
 #' @param upload     If TRUE, create the type's release if missing and upload the ZIP.
+#' @param .token     GitHub token with write access. Defaults to the
+#'                   `ARPC_ADMIN_TOKEN` env var, falling back to the gh credential.
 #' @export
-release_bundle <- function(bundle_dir, repo = NULL, upload = FALSE) {
+release_bundle <- function(bundle_dir, repo = NULL, upload = FALSE,
+                           .token = Sys.getenv("ARPC_ADMIN_TOKEN")) {
+  if (!nzchar(.token) && requireNamespace("gh", quietly = TRUE)) .token <- gh::gh_token()
+  bundle_dir <- normalizePath(bundle_dir, mustWork = TRUE)
   id   <- basename(bundle_dir)                          # data-arpc-<type>-<YYYY><##>
   type <- sub("^data-arpc-(.*)-\\d{6}$", "\\1", id)     # -> report / brief / ...
   stopifnot(type %in% VALID_TYPES)
-  zip_out <- file.path(dirname(bundle_dir), paste0(id, ".zip"))
+
+  # Build the ZIP in tempdir() to avoid sync locks ("device busy") and stray files.
+  zip_out <- file.path(tempdir(), paste0(id, ".zip"))
+  if (file.exists(zip_out)) unlink(zip_out)
   old <- setwd(dirname(bundle_dir)); on.exit(setwd(old))
-  if (file.exists(basename(zip_out))) unlink(basename(zip_out))
-  utils::zip(zipfile = basename(zip_out), files = id, flags = "-r9Xq")
+  utils::zip(zipfile = zip_out, files = id, flags = "-r9Xq")
   message("Zipped -> ", zip_out)
+
   if (upload) {
     if (!requireNamespace("piggyback", quietly = TRUE))
       stop("Install 'piggyback' to upload releases.")
-    have <- tryCatch(type %in% piggyback::pb_releases(repo = repo)$tag_name,
+    have <- tryCatch(type %in% piggyback::pb_releases(repo = repo, .token = .token)$tag_name,
                      error = function(e) FALSE)
     if (!isTRUE(have))
       piggyback::pb_release_create(repo = repo, tag = type,
-        name = sprintf("ARPC %s data", type))
-    piggyback::pb_upload(file = basename(zip_out), repo = repo, tag = type)
+        name = sprintf("ARPC %s data", type), .token = .token)
+    piggyback::pb_upload(file = zip_out, repo = repo, tag = type,
+                         overwrite = TRUE, .token = .token)
     message("Uploaded ", id, ".zip to ", repo, " @ release '", type, "'")
   }
   invisible(zip_out)

@@ -4,7 +4,12 @@
 \alias{release_bundle}
 \title{Zip a built bundle and (optionally) upload it to its publication-type Release.}
 \usage{
-release_bundle(bundle_dir, repo = NULL, upload = FALSE)
+release_bundle(
+  bundle_dir,
+  repo = NULL,
+  upload = FALSE,
+  .token = Sys.getenv("ARPC_ADMIN_TOKEN")
+)
 }
 \arguments{
 \item{bundle_dir}{Path to a built bundle folder (named data-arpc-\if{html}{\out{<type>}}-\if{html}{\out{<YYYY>}}<##>).}
@@ -12,7 +17,13 @@ release_bundle(bundle_dir, repo = NULL, upload = FALSE)
 \item{repo}{"owner/name" on GitHub. Requires \code{piggyback} + a token.}
 
 \item{upload}{If TRUE, create the type's release if missing and upload the ZIP.}
+
+\item{.token}{GitHub token with write access. Defaults to the
+\code{ARPC_ADMIN_TOKEN} env var, falling back to the gh credential.}
 }
 \description{
-Zip a built bundle and (optionally) upload it to its publication-type Release.
+The ZIP is built in \code{tempdir()} (not next to the bundle) so it never collides
+with a cloud-synced/locked file and is never committed. Upload targets the
+release tagged with the publication TYPE; the asset is overwritten if it
+already exists.
 }

@@ -6,7 +6,9 @@
 # It reproduces the bundle in data-raw/published-data/report/data-arpc-report-202601/.
 # =============================================================================
 
-source("R/export_public_data.R")
+devtools::document()
+
+if (requireNamespace("gh", quietly = TRUE)) try(gh::gh_whoami(), silent = TRUE)
 
 # Where the publication's artifacts live (figure *_data.rds, *.png, the PDF, table .tex).
 src <- file.path("..", "..", "fastscratch", "arpc-report-fcip-portfolio-size-and-growth")
@@ -66,5 +68,6 @@ build_bundle(
 
 # ---- release (uncomment to zip; set upload = TRUE to push to GitHub) ---------
 # Uploads to the single "report" release, alongside every other report ZIP.
-# release_bundle("data-raw/published-data/report/data-arpc-report-202601",
-#                repo = "arpc-ndsu/arpcOpenData", upload = FALSE)
+release_bundle("data-raw/published-data/report/data-arpc-report-202601",
+               repo = "arpc-ndsu/arpcOpenData", upload = TRUE)
+

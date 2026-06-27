@@ -102,12 +102,17 @@ fig1 <- read_exhibit("data-arpc-report-202601", "figure001")
 
 ## Citing
 
-Cite the publication, then the data bundle ID and its download link, e.g.:
+Please cite **both** the underlying publication and the data bundle:
 
-> ARPC (2026). *<Publication title>.* Data bundle `data-arpc-report-202601`.
+> **Report —** ARPC (2026). *<Publication title>.* ARPC Report 2026-01.
+> Agricultural Risk & Policy Center, NDSU.
+>
+> **Data —** ARPC (2026). *Data for <Publication title>* \[data set\].
+> Bundle `data-arpc-report-202601`.
 > https://github.com/arpc-ndsu/arpcOpenData/releases/download/report/data-arpc-report-202601.zip
 
-See [`CITATION.cff`](CITATION.cff).
+Each bundle's own `README.md` carries the exact citation for its publication. See also
+[`CITATION.cff`](CITATION.cff).
 
 ## License
 

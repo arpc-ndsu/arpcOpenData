@@ -2,7 +2,7 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- HOWTO-build-and-release.md is generated from HOWTO-build-and-release.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
@@ -11,9 +11,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 # Staging area — ARPC team only
 
 This folder is the **local workbench** for preparing, reviewing, and releasing a
-publication's data bundle. The whole of `data-raw/` is git-ignored (except the README),
-so nothing here is committed — bundles are distributed only as ZIP assets on GitHub
-Releases.
+publication's data bundle. The built bundles under `data-raw/published-data/` are
+git-ignored; the scripts, catalog, and release bodies in `data-raw/` are tracked. Bundles
+themselves are distributed only as ZIP assets on GitHub Releases.
 
 > This repository is standalone. It does **not** depend on any analysis repo. You bring
 > the finished CSVs, figure PNGs, and the publication PDF here from wherever the
@@ -37,7 +37,7 @@ data-raw/
     ├── initialize_arpcOpenData.R              # package housekeeping
     ├── initialize_release_pages.R         # create/refresh the 4 type Releases
     ├── build-data-arpc-<ID>.R             # one build script per publication
-    └── <TYPE>/release-body.Rmd            # release-page body for each type
+    └── release-body/release-body-<TYPE>.Rmd  # release-page body per type
 ```
 
 ## The identifier — get this right first
@@ -102,7 +102,7 @@ Distribution uses **one GitHub Release per publication type**; each type's relea
 every issue's ZIP as an asset.
 
 1. **Initialize the release pages once** (and whenever a body changes): run
-   `scripts/initialize_release_pages.R`. It renders each `scripts/<TYPE>/release-body.Rmd`
+   `scripts/initialize_release_pages.R`. It renders each `scripts/release-body/release-body-<TYPE>.Rmd`
    and creates/refreshes the `report`, `brief`, `working-paper`, and `white-paper` releases.
 2. **Add a row** to `metadata/publications.csv` and an entry to `CHANGELOG.md`.
 3. **Zip and upload** the bundle to its type's release:

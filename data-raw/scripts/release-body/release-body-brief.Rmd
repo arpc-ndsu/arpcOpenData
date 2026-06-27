@@ -14,10 +14,11 @@ type    <- params$type
 repo    <- params$repo
 catalog <- params$catalog
 pubs <- tryCatch(data.table::fread(catalog), error = function(e) data.table::data.table())
-if (nrow(pubs)) pubs <- pubs[type == ..type][order(-publication_date)]
+if (nrow(pubs)) {
+  sel  <- pubs$type == type                  # plain R: `type` is the variable, not a column
+  pubs <- pubs[sel][order(publication_date, decreasing = TRUE)]
+}
 ```
-
-# ARPC `r params$type_label` — Underlying Data
 
 This release holds the **open data and figures behind every ARPC `r params$type_label`**.
 Each publication is distributed as a single ZIP archive named
@@ -53,5 +54,7 @@ checksums in `_manifest.json`.
 
 ## License & citation
 
-Data and figures are released under **CC BY 4.0**. Cite the publication, then the bundle
-ID, e.g. `data-arpc-report-202601`.
+Data and figures are released under **CC BY 4.0**. Please cite **both** the underlying
+ARPC `r params$type_label` and the data bundle (e.g. bundle
+`data-arpc-`r type`-YYYY##`). Each bundle's `README.md` carries the exact citation for
+its publication.
