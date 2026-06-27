@@ -1,0 +1,19 @@
+# Built data bundles are distributed via GitHub Releases, not committed.
+# (Scripts, metadata/catalog, and release bodies under data-raw/ ARE tracked.)
+data-raw/published-data/
+
+# Package-reserved data/ is not used here; guard against committing stray bundles.
+data/
+
+# Build artifacts (zips are uploaded to Releases)
+*.zip
+
+# R / RStudio cruft
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# OS / editor cruft
+.DS_Store
+*.tmp

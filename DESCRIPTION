@@ -1,0 +1,27 @@
+Package: arpcOpenData
+Type: Package
+Title: ARPC Open Data: Public Datasets and Publication Exhibits
+Version: 0.0.0.9000
+Author: Francis Tsiboe [aut, cre] (<https://orcid.org/0000-0001-5984-1072>)
+Maintainer: Francis Tsiboe <ftsiboe@hotmail.com>
+Creator: Francis Tsiboe
+Description: ARPC's primary channel for releasing data to the public. Its first
+    and main contents are the data and figures underlying ARPC publications
+    (reports, briefs, working papers, and white papers): each publication is a
+    self-contained, citable bundle identified as data-arpc-<type>-<year><issue>
+    and containing the publication PDF, one CSV per figure and table, the figure
+    images, column-level codebooks, and a checksummed manifest. Other ARPC
+    datasets are distributed here over time through the same mechanism. Helper
+    code under R/ builds bundles from source artifacts and publishes them to
+    GitHub Releases, and fetches and caches released bundles for data users. This
+    repository is standalone and does not depend on any ARPC analysis package.
+License: GPL-3 + file LICENSE
+URL: https://github.com/arpc-ndsu/arpcOpenData
+BugReports: https://github.com/arpc-ndsu/arpcOpenData/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends: R (>= 4.1.0)
+Imports: data.table, jsonlite, digest
+Suggests: piggyback, testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3

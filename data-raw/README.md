@@ -1,0 +1,131 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# Staging area — ARPC team only
+
+This folder is the **local workbench** for preparing, reviewing, and
+releasing a publication’s data bundle. The whole of `data-raw/` is
+git-ignored (except the README), so nothing here is committed — bundles
+are distributed only as ZIP assets on GitHub Releases.
+
+> This repository is standalone. It does **not** depend on any analysis
+> repo. You bring the finished CSVs, figure PNGs, and the publication
+> PDF here from wherever the publication was produced; this repo only
+> packages, documents, and distributes them.
+
+> **Worked example.** A complete, real bundle built from the *FCIP
+> Portfolio Size and Growth* report lives at
+> `data-raw/published-data/report/data-arpc-report-202601/` (9 figures +
+> 2 tables + PDF, with dictionaries, an exhibit-map README, and a
+> checksummed manifest). Its build script is
+> `data-raw/scripts/build-data-arpc-report-202601.R`. Use both as the
+> reference for a finished bundle.
+
+## Layout
+
+    data-raw/
+    ├── metadata/
+    │   ├── publications.csv          # internal catalog of every bundle
+    │   └── schema.md                 # naming & format spec
+    ├── published-data/<TYPE>/<ID>/   # built bundles, staged here (TYPE = report, brief, …)
+    └── scripts/
+        ├── initialize_arpcOpenData.R              # package housekeeping
+        ├── initialize_release_pages.R         # create/refresh the 4 type Releases
+        ├── build-data-arpc-<ID>.R             # one build script per publication
+        └── <TYPE>/release-body.Rmd            # release-page body for each type
+
+## The identifier — get this right first
+
+Every bundle is named:
+
+    data-arpc-<TYPE>-<YYYY><##>
+
+- `<TYPE>` — `report`, `brief`, `working-paper`, or `white-paper`
+  (exactly these tokens).
+- `<YYYY>` — publication year.
+- `<##>` — issue number within that type and year, zero-padded (`01`,
+  `02`, …).
+
+Confirm the issue number against `metadata/publications.csv` so you
+don’t reuse one.
+
+## Files a bundle must contain
+
+| File pattern | Required | Notes |
+|----|----|----|
+| `arpc-<TYPE>-<YYYY><##>.pdf` | yes | The final published PDF |
+| `arpc-<TYPE>-<YYYY><##>-figure###.csv` | per fig | Data behind each figure |
+| `arpc-<TYPE>-<YYYY><##>-figure###.png` | per fig | The figure image, **same stem** as CSV |
+| `arpc-<TYPE>-<YYYY><##>-table###.csv` | per tbl | Data behind each table |
+| `*.dictionary.csv` | per CSV | One codebook per data file |
+| `README.md` | yes | Exhibit map (auto-generated) |
+| `_manifest.json` | yes | Inventory + checksums (auto-generated) |
+
+Number `###` to match the exhibit number as it appears **in the PDF**,
+not the order you exported them.
+
+## Prepare a bundle
+
+Copy `scripts/build-data-arpc-report-202601.R` to a new
+`build-data-arpc-<ID>.R`, point it at the publication’s artifacts
+(figure `*_data.rds`, PNGs, the PDF, and any table `.tex`), and run it
+from the repo root. It calls `build_bundle()` in
+`R/export_public_data.R`, which:
+
+1.  writes one CSV per figure/table (UTF-8, header row) with the strict
+    names above;
+2.  copies each figure PNG (same stem as its CSV) and the publication
+    PDF;
+3.  writes a `*.dictionary.csv` codebook per data file;
+4.  generates `_manifest.json` (inventory + sha256) and the bundle
+    `README.md` exhibit map;
+5.  stages everything under `published-data/<TYPE>/<ID>/`.
+
+Don’t hand-write the manifest or bundle README — let the exporter
+generate them so they can’t drift from the files.
+
+## Review checklist
+
+- [ ] Bundle ID is correct and unused (`metadata/publications.csv`).
+- [ ] Every figure has both a `.csv` and a matching `.png` (same stem).
+- [ ] Every data CSV has a dictionary with no blank/`TODO` descriptions.
+- [ ] Exhibit numbers in file names match the PDF.
+- [ ] CSVs open cleanly (UTF-8, header row, no stray index column).
+- [ ] No personally identifying or embargoed data; sources cleared for
+  public release.
+- [ ] `README.md` exhibit map lists every exhibit and points to real
+  files.
+- [ ] `_manifest.json` checksums regenerated from the final files.
+- [ ] Spot-check: open one CSV against the PDF exhibit and confirm the
+  numbers match.
+
+## Release
+
+Distribution uses **one GitHub Release per publication type**; each
+type’s release lists every issue’s ZIP as an asset.
+
+1.  **Initialize the release pages once** (and whenever a body changes):
+    run `scripts/initialize_release_pages.R`. It renders each
+    `scripts/<TYPE>/release-body.Rmd` and creates/refreshes the
+    `report`, `brief`, `working-paper`, and `white-paper` releases.
+
+2.  **Add a row** to `metadata/publications.csv` and an entry to
+    `CHANGELOG.md`.
+
+3.  **Zip and upload** the bundle to its type’s release:
+
+    ``` r
+    source("R/export_public_data.R")
+    release_bundle("data-raw/published-data/report/data-arpc-report-202601",
+                   repo = "arpc-ndsu/arpcOpenData", upload = TRUE)
+    ```
+
+4.  **Confirm** the download link resolves:
+    `https://github.com/arpc-ndsu/arpcOpenData/releases/download/<TYPE>/<ID>.zip`.
+
+## Revisions
+
+Never overwrite a released asset. If a published bundle needs
+correction, create a revised bundle with an `-r2` suffix
+(e.g. `data-arpc-report-202601-r2`), note the change in `CHANGELOG.md`,
+and leave the original in place so existing citations stay valid.

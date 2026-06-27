@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: "ARPC Publication Data"
+message: "If you use these data, please cite the specific publication bundle you used."
+type: dataset
+authors:
+  - name: "Agricultural & Resource Policy Center (ARPC)"
+url: "https://github.com/arpc-ndsu/arpcOpenData"
+license: CC-BY-4.0
+# Per-bundle citation: cite the publication, then the dataset bundle ID, e.g.
+#   ARPC (2026). <Publication title>. Data bundle data-arpc-report-202601.
